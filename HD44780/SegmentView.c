@@ -158,7 +158,7 @@ void segview_UpdateSegmentView (SegmentView *self)
  * ---------------------------------------------------------------------------*/
 static void segview_DrawCharacterCell (SegmentView *self, unsigned SEGnr, unsigned logical_line)
 {
-	assert(SEGnr <= 100);
+	assert(SEGnr < 150);
 
 	SIZE  szTarget; // The Pizel Size of the Glass Representation 
 	POINT ptScreen; // The Pizel Location of the Glass Representation 

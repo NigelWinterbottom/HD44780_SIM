@@ -1,6 +1,6 @@
 //{{NO_DEPENDENCIES}}
 // Microsoft Visual C++ generated include file.
-// Used by SimpleLCD.rc
+// Used by Demo.rc
 //
 #define IDB_HEATER                      102
 #define IDB_LCD_PIXELS                  103

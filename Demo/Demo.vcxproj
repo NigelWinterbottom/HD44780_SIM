@@ -170,6 +170,9 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="Demo.ico" />
+    <Image Include="RESOURCE\Demo.ico" />
+    <Image Include="RESOURCE\led_on.bmp" />
+    <Image Include="RESOURCE\small.ico" />
     <Image Include="small.ico" />
   </ItemGroup>
   <ItemGroup>

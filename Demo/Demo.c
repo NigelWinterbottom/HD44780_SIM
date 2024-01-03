@@ -48,18 +48,18 @@ static SegmentView lcdview = {
 	.controllerDuty = 16,
 
 	/* Basic Glass Layout. There must be some uniformity howeever. */
-	.nGlasslines     = 2,
-	.nGlasslineChars = 20,
+	.nGlasslines     = 6,
+	.nGlasslineChars = 10,
 	.ndCharWidth     = 5,
 	.ndCharHeight    = 7,
-	.nGlassSegments  = (20 * 5),
+	.nGlassSegments  = (5 * 10 * 6 / 2),
 
 	/* Details for Positioning each Character Cell */
-	.pxMargin_LHS  = 4,
-	.pxMargin_TOP  = 4,
-	.pxCharWidth   = 14,	// Width of Character (5 Columns) (Monitor Pixels)
-	.pxCharHeight  = 28,	// Height of Character (7, 8, 11 Rows) (Monitor Pixels)
-	.pxCharSpacing = 20,	// Spacing between Character Centres.
+	.pxMargin_LHS  = 16,
+	.pxMargin_TOP  = 24,
+	.pxCharWidth   = 15,	// Width of Character (5 Columns) (Monitor Pixels)
+	.pxCharHeight  = 32,	// Height of Character (7, 8, 11 Rows) (Monitor Pixels)
+	.pxCharSpacing = 24,	// Spacing between Character Centres.
 	.pxLineSpacing = 48,	// Spacing between Line Centres.
 
 };

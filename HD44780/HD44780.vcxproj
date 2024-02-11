@@ -153,10 +153,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="CharacterLcd.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="SegmentView.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="CharacterLcd.c" />
+    <ClCompile Include="HD44780_Sim.c" />
     <ClCompile Include="SegmentView.c" />
   </ItemGroup>
   <ItemGroup>

@@ -98,25 +98,22 @@ void segview_DestroySegmentView (SegmentView *self)
  * @param	charPosn: 0-Based index. (cf Controller Memory Address)
  * @param	font:     8 or 11 bytes corresponding to Number of Character Dot Rows
  * ---------------------------------------------------------------------------*/
-void segview_StoreStdCharacter (SegmentView *self, uint8_t charPosn, const uint8_t font[11], int logical_line)
+void segview_StoreCharacter (SegmentView *self, uint16_t segmentNr, uint8_t logical_line, const uint8_t font[11])
 {
 	/* Calculate Number of Dot Rows for consideration in the character */
 	int nCharRows = (self->controllerDuty == 11) ? 11 : 8;
 
-	/* Calculate target SEGMENT Nr (Characters are always 5 segments wide) */
-	int segmentNr = charPosn * 5;
-
 	/* The target base COMMON bit is going to be 0 or 8 */
-	int baseComn = (self->controllerDuty < 16) ? 0 : (logical_line == 0) ? 0 : 8;
+	int baseComn = (self->controllerDuty == 16) ? ((logical_line == 0) ? 0 : 8) : 0;
 
 	for (int fontRow = 0; fontRow < nCharRows; fontRow++) {
 
 		WORD comnMask = 1 << (baseComn + fontRow);
 		WORD fontMask = 1 << 4;
-		for (int fontCol = 0; fontCol < 5; fontMask >>= 1, fontCol++) {
+		for (int segment = 0; segment < 5; fontMask >>= 1, segment++) {
 
-			self->_frameBuffer[segmentNr + fontCol] &= (WORD)(~comnMask);
-			self->_frameBuffer[segmentNr + fontCol] |= (font[fontRow] & fontMask) ? comnMask : 0;
+			self->_frameBuffer[segmentNr + segment] &= (WORD)(~comnMask);
+			self->_frameBuffer[segmentNr + segment] |= (font[fontRow] & fontMask) ? comnMask : 0;
 
 		}
 	}
@@ -297,7 +294,8 @@ void segview_TestSegmentView (SegmentView *self)
 
 	/* Just as a Test - lets fill the framebuffer with some character patterns */
 	for (char charPos = 0; charPos < 80; charPos++) {
-		segview_StoreStdCharacter(self, charPos, FontMap[charPos + 'A' - ' '], 0);
-		segview_StoreStdCharacter(self, charPos, FontMap[charPos + 'a' - ' '], 1);
+		segview_StoreCharacter(self, charPos * 5, 0, FontMap[charPos + 'A' - ' ']);
+		segview_StoreCharacter(self, charPos * 5, 1, FontMap[charPos + 'a' - ' ']);
 	}
+	segview_UpdateSegmentView (self);
 }

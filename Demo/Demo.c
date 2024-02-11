@@ -12,10 +12,12 @@
 //-----------------------------------------------------------------------------*
 
 /* Dependencies ***************************************************************/
+#include <stdint.h>
+
 #include "framework.h"
 #include "Demo.h"
 #include "qwin_gui.h"
-#include "../HD44780/SegmentView.h"
+#include "../HD44780/HD44780_Sim.h"
 
 #define MAX_LOADSTRING	96
 #define IDC_TIMER_25	1 /* My 25ms Windows Timer */
@@ -37,10 +39,10 @@ static OwnerDrawnButton l_BtnSetup, l_BtnUp, l_BtnDown, l_BtnEnter;
 
 static BOOL      l_PIC_IRQ_Enabled;
 static unsigned  l_PerfTicks_1us;
-static void (*keyboard_callback) (void);
-static void (*timer_25_callback) (void);
 
-static SegmentView lcdview = {
+static HD44780_Controller_t HD44780;
+static CharacterLcd_t       lcd;
+static SegmentView          lcdview = {
 
 //	.idbPattern256 = IDB_LCD_PIXELS,
 //	.idcLCDcontrol = IDC_CHARLCD,
@@ -65,6 +67,12 @@ static SegmentView lcdview = {
 };
 
 
+/* Forward Defs */
+static void (*keyboard_callback) (void);
+static void (*timer_25_callback) (void);
+
+static void ConfigureHD44780 ();
+static void DemoSegmentView  ();
 
 // Forward declarations of functions included in this code module:
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
@@ -138,7 +146,8 @@ LRESULT CALLBACK WndProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	case WM_INITDIALOG: {
 
 		segview_CreateSegmentView(&lcdview, GetDlgItem(hWnd, IDC_CHARLCD), l_hbmBinaryDot);
-		segview_TestSegmentView (&lcdview);
+		hd44780_CreateController(&HD44780, &lcd, &lcdview);
+		ConfigureHD44780();
 
 		SetTimer(hWnd, IDC_TIMER_25, 25, NULL); /* Create TIMER_25mS */
 
@@ -167,10 +176,11 @@ LRESULT CALLBACK WndProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			DestroyWindow(hWnd);
 			break;
 		case IDC_SETUP_BTN:
-			segview_UpdateSegmentView(&lcdview);
+			segview_TestSegmentView(&lcdview);
 			break;
 
 		case IDC_START_BTN:
+			DemoSegmentView ();
 			break;
 
 		default:
@@ -184,6 +194,7 @@ LRESULT CALLBACK WndProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		HDC hdc = BeginPaint(hWnd, &ps);
 		// TODO: Add any drawing code that uses hdc here...
 		segview_FillGlassBackground(&lcdview);
+		segview_UpdateSegmentView(&lcdview);
 		EndPaint(hWnd, &ps);
 	}
 	break;
@@ -224,6 +235,39 @@ LRESULT CALLBACK WndProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 }
 
 
+/**
+ * @brief	Configure the HD44780 as a regular Embedded App would do.
+ * ---------------------------------------------------------------------------*/
+static void ConfigureHD44780 ()
+{
+	hd44780_WriteControllerCmnd(&HD44780, HD44780_FUNCTIONSET | HD44780_8BITMODE | HD44780_2LINE | HD44780_5x8DOTS);
+	hd44780_WriteControllerCmnd(&HD44780, HD44780_SETDDRAMADDR);
+	hd44780_WriteControllerCmnd(&HD44780, HD44780_RETURNHOME);
+	hd44780_WriteControllerCmnd(&HD44780, HD44780_SETCGRAMADDR);
+	hd44780_WriteControllerCmnd(&HD44780, HD44780_DISPLAYCONTROL | HD44780_DISPLAYON | HD44780_CURSOROFF);
+	hd44780_WriteControllerCmnd(&HD44780, HD44780_CLEARDISPLAY);
+	hd44780_WriteControllerCmnd(&HD44780, HD44780_ENTRYMODESET | HD44780_ENTRYRIGHT | HD44780_ENTRYSHIFTOFF);
+}
+
+
+static void DemoSegmentView ()
+{
+	/* Just as a Test - lets fill the framebuffer with some character patterns */
+	char data;
+
+	data = 'A';
+	hd44780_WriteControllerCmnd(&HD44780, HD44780_SETDDRAMADDR | 0x00);
+	for (int addr = 0; addr < 30; addr++) {
+		hd44780_WriteControllerData(&HD44780, data++);
+	}
+
+	data = 'a';
+	hd44780_WriteControllerCmnd(&HD44780, HD44780_SETDDRAMADDR | 0x40);
+	for (int addr = 0; addr < 30; addr++) {
+		hd44780_WriteControllerData(&HD44780, data++);
+	}
+	segview_UpdateSegmentView(&lcdview);
+}
 
 /*..........................................................................*/
 /* thread function for running the application main_gui() */

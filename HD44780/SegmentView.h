@@ -17,11 +17,13 @@
 /* Dependencies ***************************************************************/
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>  /* Win32 API */
+#include <stdint.h>
 
 
 /* Public Defines *************************************************************/
-#define NR_SEGMENTS 400
-#define NR_COMMONS  16
+#define NR_GLASSLINES_MAX 6
+#define NR_SEGMENTS       400
+#define NR_COMMONS        16
 
 /* Public Types ***************************************************************/
 typedef struct {
@@ -44,6 +46,7 @@ typedef struct {
 	int      pxLineSpacing;     // Spacing between line centres (Monitor Pixels)
 
 	/* My Private Stuff Hereafter */
+//	uint8_t _row_offsets[NR_GLASSLINES_MAX]; //	setRowOffsets(0x00, 0x40, 0x00 + cols, 0x40 + cols);
 
 	HWND     _hLCD;
 	RECT     _glassRect;         // Position & Size of the LCD Window Representing Glass Panel (Monitor Pixels)
@@ -72,5 +75,6 @@ void segview_DestroySegmentView  (SegmentView *self);
 void segview_FillGlassBackground (SegmentView *self);
 void segview_UpdateSegmentView   (SegmentView *self);
 void segview_TestSegmentView     (SegmentView *self);
+void segview_StoreCharacter      (SegmentView *self, uint16_t segment, uint8_t logical_line, const uint8_t font[11]);
 
 #endif /* H_SEGMENTVIEW_H */

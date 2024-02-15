@@ -156,8 +156,8 @@ static void segview_DrawCharacterCell (SegmentView *self, unsigned SEGnr, unsign
 {
 	assert(SEGnr < 150);
 
-	SIZE  szTarget; // The Pizel Size of the Glass Representation 
-	POINT ptScreen; // The Pizel Location of the Glass Representation 
+	SIZE  szTarget; // The Pixel Size of the Glass Representation
+	POINT ptScreen; // The Pixel Location of the Glass Representation
 
 	szTarget.cx = self->pxCharWidth;
 	szTarget.cy = self->pxCharHeight;

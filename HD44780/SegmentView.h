@@ -1,6 +1,5 @@
 //-----------------------------------------------------------------------------*
-// Copyright © 2023 Kane International Ltd.
-// Instrument	: KANE Combustion Analyser
+// Copyright © 2023,2024 Nigel Winterbottom.
 // FILE			: SegmentView.h
 // ENCODING		: ISO 8859-1
 // DESCRIPTION	: Generic 5x8 Character Type LCD DisplaySide Stuff.

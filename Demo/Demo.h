@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------*
-// Copyright © 2023 Nigel Winterbottom.
+// Copyright © 2023,2024 Nigel Winterbottom.
 // Instrument	: General Windows Project
 // FILE			: Demo.h (HD44780_SIM)
 // ENCODING		: ISO 8859-1
@@ -10,7 +10,6 @@
 // COMPILER		: ANY
 // COMMENTS		:
 //-----------------------------------------------------------------------------*
-
 
 #pragma once
 

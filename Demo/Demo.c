@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------*
-// Copyright © 2023 Nigel Winterbottom.
+// Copyright © 2023,2024 Nigel Winterbottom.
 // Instrument	: General Windows Project
 // FILE			: Demo.c (HD44780_SIM)
 // ENCODING		: ISO 8859-1
@@ -169,7 +169,7 @@ LRESULT CALLBACK WndProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		case IDM_ABOUT:
 			DialogBox(l_hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
 			break;
-		
+
 		case IDCANCEL:
 		case IDM_EXIT:
 			segview_DestroySegmentView(&lcdview);

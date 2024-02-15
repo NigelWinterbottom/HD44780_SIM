@@ -1,7 +1,6 @@
 //-----------------------------------------------------------------------------*
-// Copyright © 2023 Kane International Ltd.
-// Instrument	: KANE Combustion Analyser
-// FILE			: HitachiController.c
+// Copyright © 2024 Nigel Winterbottom.
+// FILE			: CharacterLcd.c
 // ENCODING		: ISO 8859-1
 // DESCRIPTION	: Hitachi HD44780 LCD Controller Simulator.
 // CREATED		: 2023-04-10

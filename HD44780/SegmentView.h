@@ -57,7 +57,7 @@ typedef struct {
 
 	/* Bitmap for Character Composed from BinaryDot Bitmap */
 	HDC      _hdcCharacter;
-	HBITMAP  _hbmCharacter; 
+	HBITMAP  _hbmCharacter;
 	BITMAP   _bmCharacter;
 
 	//	BYTE *   _bits;

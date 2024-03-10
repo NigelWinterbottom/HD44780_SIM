@@ -255,15 +255,27 @@ static void DemoSegmentView ()
 	/* Just as a Test - lets fill the framebuffer with some character patterns */
 	char data;
 
-	data = 'A';
+	data = '0';
 	hd44780_WriteControllerCmnd(&HD44780, HD44780_SETDDRAMADDR | 0x00);
-	for (int addr = 0; addr < 30; addr++) {
+	for (int addr = 0; addr < 10; addr++) {
+		hd44780_WriteControllerData(&HD44780, data++);
+	}
+
+	data = 'A';
+	hd44780_WriteControllerCmnd(&HD44780, HD44780_SETDDRAMADDR | 0x0a);
+	for (int addr = 10; addr < 30; addr++) {
+		hd44780_WriteControllerData(&HD44780, data++);
+	}
+
+	data = '!';
+	hd44780_WriteControllerCmnd(&HD44780, HD44780_SETDDRAMADDR | 0x40);
+	for (int addr = 0; addr < 10; addr++) {
 		hd44780_WriteControllerData(&HD44780, data++);
 	}
 
 	data = 'a';
-	hd44780_WriteControllerCmnd(&HD44780, HD44780_SETDDRAMADDR | 0x40);
-	for (int addr = 0; addr < 30; addr++) {
+	hd44780_WriteControllerCmnd(&HD44780, HD44780_SETDDRAMADDR | 0x4a);
+	for (int addr = 10; addr < 30; addr++) {
 		hd44780_WriteControllerData(&HD44780, data++);
 	}
 	segview_UpdateSegmentView(&lcdview);

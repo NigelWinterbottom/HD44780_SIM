@@ -52,7 +52,7 @@ static void Show (HWND hwnd, HDC hdc, int xText, int yText, int iMapMode, TCHAR 
 
 
 
-/**
+/**----------------------------------------------------------------------------/
  * Initilaise the GUI Element.
  * ---------------------------------------------------------------------------*/
 void segview_CreateSegmentView (SegmentView *self, HWND hLCD, HBITMAP hbmBinarDot)
@@ -66,10 +66,10 @@ void segview_CreateSegmentView (SegmentView *self, HWND hLCD, HBITMAP hbmBinarDo
 	self->_hdcCharacter = CreateCompatibleDC(NULL);
 
 	GetObject(self->_hbmBinaryDot, sizeof(BITMAP), &self->_bmBinaryDot);
+
+	HDC hdc       = GetDC(hLCD);
 	LONG bmWidth  = self->_bmBinaryDot.bmWidth / 256 * self->ndCharWidth;
 	LONG bmHeight = self->_bmBinaryDot.bmHeight * 2; // NB: Only 11 dots of height is actually required.
-
-	HDC hdc = GetDC(hLCD);
 	self->_hbmCharacter = CreateCompatibleBitmap(hdc, bmWidth, bmHeight); // The DC used must be a colour DC,
 	GetObject(self->_hbmCharacter, sizeof(BITMAP), &self->_bmCharacter);
 
@@ -82,7 +82,7 @@ void segview_CreateSegmentView (SegmentView *self, HWND hLCD, HBITMAP hbmBinarDo
 }
 
 
-/**
+/**----------------------------------------------------------------------------/
  * Destroy the GUI Element.
  * ---------------------------------------------------------------------------*/
 void segview_DestroySegmentView (SegmentView *self)
@@ -93,29 +93,22 @@ void segview_DestroySegmentView (SegmentView *self)
 }
 
 
-/**
- * @param	charPosn: 0-Based index. (cf Controller Memory Address)
- * @param	font:     8 or 11 bytes corresponding to Number of Character Dot Rows
+/**----------------------------------------------------------------------------/
+ * @note	Segment Memory is organised as one 16-bit integer per senment. Bit-0 representing the top pixel.
+ * @param	segmentNr:0-Based index. (cf Controller Memory Address)
+ * @param	pixels:   8 or 11 bits of vertical pixel data.
+ * @param	logical_line: 0 or 1.
  * ---------------------------------------------------------------------------*/
-void segview_StoreCharacter (SegmentView *self, uint16_t segmentNr, uint8_t logical_line, const uint8_t font[11])
+void segview_StoreSegment (SegmentView *self, WORD segmentNr, WORD pixels, BYTE logical_line)
 {
-	/* Calculate Number of Dot Rows for consideration in the character */
-	int nCharRows = (self->controllerDuty == 11) ? 11 : 8;
-
-	/* The target base COMMON bit is going to be 0 or 8 */
-	int baseComn = (self->controllerDuty == 16) ? ((logical_line == 0) ? 0 : 8) : 0;
-
-	for (int fontRow = 0; fontRow < nCharRows; fontRow++) {
-
-		WORD comnMask = 1 << (baseComn + fontRow);
-		WORD fontMask = 1 << 4;
-		for (int segment = 0; segment < 5; fontMask >>= 1, segment++) {
-
-			self->_frameBuffer[segmentNr + segment] &= (WORD)(~comnMask);
-			self->_frameBuffer[segmentNr + segment] |= (font[fontRow] & fontMask) ? comnMask : 0;
-
-		}
+	WORD comnMask = self->controllerDuty == 11 ? 0x7ff : 0xff;
+	if (logical_line == 1) {
+		comnMask = 0xff00;
+		pixels <<= 8;
 	}
+
+	/* Merge bits from two values according to a mask. https://graphics.stanford.edu/~seander/bithacks.html */
+	self->_frameBuffer[segmentNr] = self->_frameBuffer[segmentNr] ^ ((pixels ^ self->_frameBuffer[segmentNr]) & comnMask);
 }
 
 
@@ -145,7 +138,7 @@ void segview_UpdateSegmentView (SegmentView *self)
 
 
 
-/**
+/**----------------------------------------------------------------------------/
  * @fn		segview_DrawCharacterCell
  * @brief	Draw one 5x7 / 5x10 Pixel Character.
  * @param	SEGnr: 0 - 39
@@ -154,27 +147,31 @@ void segview_UpdateSegmentView (SegmentView *self)
  * ---------------------------------------------------------------------------*/
 static void segview_DrawCharacterCell (SegmentView *self, unsigned SEGnr, unsigned logical_line)
 {
+	/// Build an intermediate BitMap by copying 5 columns (selected by FrameBuffer contents) from BinaryDotMatrix.
+	/// Once complete, I StretchBlt this intermediate BitMap onto the Screen.
+
 	assert(SEGnr < 150);
 
-	SIZE  szTarget; // The Pixel Size of the Glass Representation
+	SIZE  szBinMtx; // The Pixel Size of the Source BinaryDotMatrix Bitmap.
+	POINT ptBinMtx; // The Pixel Location of the Source BinaryDotMatrix Bitmap Column.
+	SIZE  szScreen; // The Pixel Size of the Glass Representation
 	POINT ptScreen; // The Pixel Location of the Glass Representation
 
-	szTarget.cx = self->pxCharWidth;
-	szTarget.cy = self->pxCharHeight;
+	szBinMtx.cx = self->_bmBinaryDot.bmWidth / 256; // The Width of one Pixel Column
+	szBinMtx.cy = self->_bmBinaryDot.bmHeight;
+	szScreen.cx = self->pxCharWidth;
+	szScreen.cy = self->pxCharHeight;
 
 	int charPosn     = SEGnr / self->ndCharWidth;
 	int COMnr        = (logical_line == 0) ? 0 : 8;
-	int COMmask      = (1 << self->ndCharHeight) - 1;
-	int nComsPerLine = (self->controllerDuty == 11) ? 11 : 8;
-
-	int binaryDotWidth = (self->_bmBinaryDot.bmWidth / 256);
 
 	for (int dotCol = 0; dotCol < self->ndCharWidth; dotCol++) {
 
-		LONG xPosSource = binaryDotWidth * ((self->_frameBuffer[SEGnr + dotCol] >> COMnr) & 0xff);
+		ptBinMtx.x = szBinMtx.cx * ((self->_frameBuffer[SEGnr + dotCol] >> COMnr) & 0xff);
+		ptBinMtx.y = 0;
 
-		BitBlt(self->_hdcCharacter, (dotCol * binaryDotWidth), 0, binaryDotWidth, self->_bmBinaryDot.bmHeight,
-		       self->_hdcBinaryDot, xPosSource, 0, SRCCOPY);
+		BitBlt(self->_hdcCharacter, (dotCol * szBinMtx.cx), ptBinMtx.y, szBinMtx.cx, szBinMtx.cy,
+		       self->_hdcBinaryDot, ptBinMtx.x, ptBinMtx.y, SRCCOPY);
 	}
 
 	ptScreen.x = self->pxMargin_LHS + (charPosn % self->nGlasslineChars) * self->pxCharSpacing;
@@ -182,8 +179,8 @@ static void segview_DrawCharacterCell (SegmentView *self, unsigned SEGnr, unsign
 
 	HDC hdc = GetDC(self->_hLCD);
 	SetStretchBltMode (hdc, STRETCH_HALFTONE);
-	StretchBlt(hdc, ptScreen.x, ptScreen.y, self->pxCharWidth, self->pxCharHeight,
-	           self->_hdcCharacter, 0, 0, self->_bmCharacter.bmWidth, (self->_bmBinaryDot.bmHeight / 8 * self->ndCharHeight), SRCCOPY);
+	StretchBlt(hdc, ptScreen.x, ptScreen.y, szScreen.cx, szScreen.cy,
+	           self->_hdcCharacter, 0, 0, self->_bmCharacter.bmWidth, (self->_bmBinaryDot.bmHeight * self->ndCharHeight / 8), SRCCOPY);
 
 	ReleaseDC(self->_hLCD, hdc);
 }
@@ -293,8 +290,24 @@ void segview_TestSegmentView (SegmentView *self)
 
 	/* Just as a Test - lets fill the framebuffer with some character patterns */
 	for (char charPos = 0; charPos < 80; charPos++) {
-		segview_StoreCharacter(self, charPos * 5, 0, FontMap[charPos + 'A' - ' ']);
-		segview_StoreCharacter(self, charPos * 5, 1, FontMap[charPos + 'a' - ' ']);
+
+		WORD segmentNr = charPos * 5;
+		uint8_t displayData1 = charPos + 'A';
+		uint8_t displayData2 = charPos + 'a';
+
+		for (WORD font_bm = 1 << 4; font_bm; font_bm >>= 1) {
+
+			WORD pixels1 = 0, pixels2 = 0;
+			WORD pixel_bm = 1; // Pixel BitMask
+
+			for (int fontRow = 0; fontRow < 8; fontRow++, pixel_bm <<= 1) {
+				pixels1 |= (FontMap[displayData1 - ' '][fontRow] & font_bm) ? pixel_bm : 0;
+				pixels2 |= (FontMap[displayData2 - ' '][fontRow] & font_bm) ? pixel_bm : 0;
+			}
+			segview_StoreSegment(self, segmentNr, pixels1, 0);
+			segview_StoreSegment(self, segmentNr, pixels2, 1);
+			segmentNr++;
+		}
 	}
 	segview_UpdateSegmentView (self);
 }

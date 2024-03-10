@@ -74,6 +74,6 @@ void segview_DestroySegmentView  (SegmentView *self);
 void segview_FillGlassBackground (SegmentView *self);
 void segview_UpdateSegmentView   (SegmentView *self);
 void segview_TestSegmentView     (SegmentView *self);
-void segview_StoreCharacter      (SegmentView *self, uint16_t segment, uint8_t logical_line, const uint8_t font[11]);
+void segview_StoreSegment        (SegmentView *self, uint16_t segmentNr, uint16_t pixels, uint8_t logical_line);
 
 #endif /* H_SEGMENTVIEW_H */

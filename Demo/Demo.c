@@ -12,6 +12,7 @@
 //-----------------------------------------------------------------------------*
 
 /* Dependencies ***************************************************************/
+#include <stdio.h>
 #include <stdint.h>
 
 #include "framework.h"
@@ -39,6 +40,7 @@ static OwnerDrawnButton l_BtnSetup, l_BtnUp, l_BtnDown, l_BtnEnter;
 
 static BOOL      l_PIC_IRQ_Enabled;
 static unsigned  l_PerfTicks_1us;
+static char      l_basechar = 0;
 
 static HD44780_Controller_t HD44780;
 static CharacterLcd_t       lcd;
@@ -72,7 +74,7 @@ static void (*keyboard_callback) (void);
 static void (*timer_25_callback) (void);
 
 static void ConfigureHD44780 ();
-static void DemoSegmentView  ();
+static void DemoSegmentView  (char initial);
 
 // Forward declarations of functions included in this code module:
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
@@ -176,11 +178,24 @@ LRESULT CALLBACK WndProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			DestroyWindow(hWnd);
 			break;
 		case IDC_SETUP_BTN:
+			l_basechar = 0;
 			segview_TestSegmentView(&lcdview);
 			break;
 
 		case IDC_START_BTN:
-			DemoSegmentView ();
+			/* Swap LHS & RHS Character Map */
+			DemoSegmentView (l_basechar ^= 0x80);
+			break;
+
+		case IDC_UP_BTN:
+			/* Merge bits from two values according to a mask. https://graphics.stanford.edu/~seander/bithacks.html */
+			l_basechar = l_basechar ^ (((l_basechar - 1) ^ l_basechar) & 0x7f);
+			DemoSegmentView (l_basechar);
+			break;
+
+		case IDC_DOWN_BTN:
+			l_basechar = l_basechar ^ (((l_basechar + 1) ^ l_basechar) & 0x7f);
+			DemoSegmentView (l_basechar);
 			break;
 
 		default:
@@ -250,34 +265,26 @@ static void ConfigureHD44780 ()
 }
 
 
-static void DemoSegmentView ()
+static void DemoSegmentView (char basechar)
 {
-	/* Just as a Test - lets fill the framebuffer with some character patterns */
-	char data;
 
-	data = '0';
-	hd44780_WriteControllerCmnd(&HD44780, HD44780_SETDDRAMADDR | 0x00);
-	for (int addr = 0; addr < 10; addr++) {
-		hd44780_WriteControllerData(&HD44780, data++);
+	/* Show a Character Map like that in the LCD DataSheet */
+	char ch = basechar & ~0x70;
+	for (uint8_t ln = 0; ln < 6; ln++) {
+		char templine[12];
+		/* NB: 0x00 & '\r' Get Hijacked. Replace them for alternates. */
+		char alternate = (ch == 0) ? 0x08 : ((ch == 0x0d) ? (0x0d - 8) : ch);
+		sprintf_s(templine, 12, " %c%c%c%c%c%c%c%c ", alternate, ch + 0x10, ch + 0x20, ch + 0x30, ch + 0x40, ch + 0x50, ch + 0x60, ch + 0x70);
+
+		uint8_t DDRAM_Offset = (ln & 1) ? 0x40 : 0;
+		hd44780_WriteControllerCmnd(&HD44780, HD44780_SETDDRAMADDR + DDRAM_Offset + (ln / 2) * 10);
+		for (int addr = 0; addr < 10; addr++) {
+			hd44780_WriteControllerData(&HD44780, templine[addr]);
+		}
+
+		ch += 1;
 	}
 
-	data = 'A';
-	hd44780_WriteControllerCmnd(&HD44780, HD44780_SETDDRAMADDR | 0x0a);
-	for (int addr = 10; addr < 30; addr++) {
-		hd44780_WriteControllerData(&HD44780, data++);
-	}
-
-	data = '!';
-	hd44780_WriteControllerCmnd(&HD44780, HD44780_SETDDRAMADDR | 0x40);
-	for (int addr = 0; addr < 10; addr++) {
-		hd44780_WriteControllerData(&HD44780, data++);
-	}
-
-	data = 'a';
-	hd44780_WriteControllerCmnd(&HD44780, HD44780_SETDDRAMADDR | 0x4a);
-	for (int addr = 10; addr < 30; addr++) {
-		hd44780_WriteControllerData(&HD44780, data++);
-	}
 	segview_UpdateSegmentView(&lcdview);
 }
 

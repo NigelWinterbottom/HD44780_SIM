@@ -188,12 +188,14 @@ LRESULT CALLBACK WndProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			break;
 
 		case IDC_UP_BTN:
+			/* Decrement without flipping BIT-7 */
 			/* Merge bits from two values according to a mask. https://graphics.stanford.edu/~seander/bithacks.html */
 			l_basechar = l_basechar ^ (((l_basechar - 1) ^ l_basechar) & 0x7f);
 			DemoSegmentView (l_basechar);
 			break;
 
 		case IDC_DOWN_BTN:
+			/* Increment without flipping BIT-7 */
 			l_basechar = l_basechar ^ (((l_basechar + 1) ^ l_basechar) & 0x7f);
 			DemoSegmentView (l_basechar);
 			break;
@@ -282,7 +284,9 @@ static void DemoSegmentView (char basechar)
 			hd44780_WriteControllerData(&HD44780, templine[addr]);
 		}
 
-		ch += 1;
+		/* Increment without flipping High Nibble */
+		/* Merge bits from two values according to a mask. https://graphics.stanford.edu/~seander/bithacks.html */
+		ch = ch ^ (((ch + 1) ^ ch) & 0x0f);
 	}
 
 	segview_UpdateSegmentView(&lcdview);

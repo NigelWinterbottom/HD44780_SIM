@@ -155,6 +155,7 @@
   <ItemGroup>
     <ClInclude Include="CharacterLcd.h" />
     <ClInclude Include="framework.h" />
+    <ClInclude Include="Res\HD44780Res.h" />
     <ClInclude Include="SegmentView.h" />
   </ItemGroup>
   <ItemGroup>
@@ -164,6 +165,9 @@
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Res\HD44780.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Res\LCDPixels256.bmp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

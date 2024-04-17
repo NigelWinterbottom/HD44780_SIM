@@ -69,7 +69,7 @@ typedef struct {
 
 
 /** Initilaise the GUI Element.*/
-void segview_CreateSegmentView   (SegmentView *self, HWND hLCD, HBITMAP hbmBinarDot);
+void segview_CreateSegmentView   (SegmentView *self, HINSTANCE hInstance, HWND hLCD);
 void segview_DestroySegmentView  (SegmentView *self);
 void segview_FillGlassBackground (SegmentView *self);
 void segview_UpdateSegmentView   (SegmentView *self);

@@ -19,6 +19,8 @@
 #include <stdint.h>
 #include <CommCtrl.h>
 
+#include "Res/HD44780Res.h"
+
 
 
 /* Local Types ****************************************************************/
@@ -55,13 +57,12 @@ static void Show (HWND hwnd, HDC hdc, int xText, int yText, int iMapMode, TCHAR 
 /**----------------------------------------------------------------------------/
  * Initilaise the GUI Element.
  * ---------------------------------------------------------------------------*/
-void segview_CreateSegmentView (SegmentView *self, HWND hLCD, HBITMAP hbmBinarDot)
+void segview_CreateSegmentView (SegmentView *self,  HINSTANCE hInstance, HWND hLCD)
 {
 	self->_hLCD = hLCD;
-	self->_hbmBinaryDot = hbmBinarDot;
+	self->_hbmBinaryDot = LoadBitmap(hInstance, MAKEINTRESOURCE(IDB_LCD_PIXELS));
 
 	GetWindowRect(hLCD, &self->_glassRect);
-
 	self->_hdcBinaryDot = CreateCompatibleDC(NULL);
 	self->_hdcCharacter = CreateCompatibleDC(NULL);
 
@@ -90,6 +91,7 @@ void segview_DestroySegmentView (SegmentView *self)
 	ReleaseDC(self->_hLCD, self->_hdcCharacter);
 	ReleaseDC(self->_hLCD, self->_hdcBinaryDot);
 	DeleteObject(self->_hbmCharacter);
+	DeleteObject(self->_hbmBinaryDot);
 }
 
 

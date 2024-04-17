@@ -33,7 +33,6 @@ TCHAR szWindowClass[MAX_LOADSTRING];            // the main window class name
 static HINSTANCE l_hInst;   /* this application instance */
 static HWND      l_hWnd;    /* main window handle */
 static LPSTR     l_cmdLine; /* the command line string */
-static HBITMAP   l_hbmBinaryDot;
 
 static OwnerDrawnButton l_BtnStart;
 static OwnerDrawnButton l_BtnSetup, l_BtnUp, l_BtnDown, l_BtnEnter;
@@ -98,11 +97,11 @@ int APIENTRY WinMain (_In_ HINSTANCE hInstance,
     UNREFERENCED_PARAMETER(lpCmdLine);
 
     // TODO: Place code here.
+	l_hInst = hInstance;
 
     // Initialize global strings
     LoadString(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
     LoadString(hInstance, IDC_SIMPLELCD, szWindowClass, MAX_LOADSTRING);
-	l_hbmBinaryDot = LoadBitmap(hInstance, MAKEINTRESOURCE(IDB_LCD_PIXELS));
 
 	// Perform application initialization:
 	RegisterDialogClass(hInstance, &WndProc, TEXT("LCDDEMO"), IDI_SIMPLELCD, IDC_SIMPLELCD);
@@ -123,7 +122,6 @@ int APIENTRY WinMain (_In_ HINSTANCE hInstance,
     }
 
 	DeleteObject(hAccelTable);
-	DeleteObject(l_hbmBinaryDot);
 	return (int) msg.wParam;
 }
 
@@ -147,7 +145,7 @@ LRESULT CALLBACK WndProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	/* Perform initialization after all child windows have been created */
 	case WM_INITDIALOG: {
 
-		segview_CreateSegmentView(&lcdview, GetDlgItem(hWnd, IDC_CHARLCD), l_hbmBinaryDot);
+		segview_CreateSegmentView(&lcdview, l_hInst, GetDlgItem(hWnd, IDC_CHARLCD));
 		hd44780_CreateController(&HD44780, &lcd, &lcdview);
 		ConfigureHD44780();
 

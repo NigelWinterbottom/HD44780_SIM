@@ -155,6 +155,7 @@
   <ItemGroup>
     <ClInclude Include="CharacterLcd.h" />
     <ClInclude Include="framework.h" />
+    <ClInclude Include="HD44780_Sim.h" />
     <ClInclude Include="Res\HD44780Res.h" />
     <ClInclude Include="SegmentView.h" />
   </ItemGroup>

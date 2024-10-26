@@ -29,7 +29,7 @@ typedef struct CharacterLcd_s
 {
 	SegmentView * view;
 	uint8_t DD_RAM[80];
-	uint8_t CG_RAM[64];
+	uint8_t CG_RAM[8][8];
 	int     CursorX;
 	int     CursorY;
 	uint8_t ScrollOffset;

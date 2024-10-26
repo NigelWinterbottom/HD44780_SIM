@@ -75,12 +75,12 @@ void charlcd_SetDD_RAM (CharacterLcd_t * self, uint8_t index, uint8_t data)
 
 uint8_t charlcd_GetCG_RAM (CharacterLcd_t * self, uint8_t index)
 {
-	return self->CG_RAM[index & 63];
+	return self->CG_RAM[index / 8][index % 8];
 }
 
 void charlcd_SetCG_RAM (CharacterLcd_t * self, uint8_t index, uint8_t data)
 {
-	self->CG_RAM[index & 63] = data;
+	self->CG_RAM[index / 8][index % 8] = data;
 	UpdateLcd(self); // Let's simply Update the whole LCD to "forward" any font change onto the view.
 }
 
@@ -402,8 +402,8 @@ static void DrawPixels (CharacterLcd_t * self, uint8_t index)
 		segmentNr = 5 * (index % MemoryPerRow);
 	}
 
-	/* Transpose a "font-by-row" bitmap into "font-by-colum" bitmap */
-	const uint8_t * const pFontChar = displayData < 0x10 ? &self->CG_RAM[displayData / 8] : &fontA00[displayData - 0x10][0];
+	/* Transpose a "font-by-row" bitmap into "font-by-column" bitmap */
+	const uint8_t * const pFontChar = displayData < 0x10 ? &self->CG_RAM[displayData & 7][0] : &fontA00[displayData - 0x10][0];
 	int nCharRows = (self->view->controllerDuty == 11) ? 11 : 8;
 
 	WORD pixel_bm = 1; // Pixel BitMask

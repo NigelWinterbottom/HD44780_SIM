@@ -255,21 +255,48 @@ LRESULT CALLBACK WndProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
  * ---------------------------------------------------------------------------*/
 static void ConfigureHD44780 ()
 {
+	static const uint8_t SetOneCGRAM[] = {
+		0x0e,0x1f,0x11,0x11,0x11,0x11,0x1F,0x00,        // 0 - Empty battery symbol
+		0x0e,0x1f,0x11,0x11,0x11,0x1F,0x1F,0x00,        // 1 - 25% full battery symbol
+		0x0e,0x1f,0x11,0x11,0x1F,0x1F,0x1F,0x00,        // 2 - 50% full battery symbol
+		0x0e,0x1f,0x11,0x1F,0x1F,0x1F,0x1F,0x00,        // 3 - 75% full battery symbol
+		0x0e,0x1F,0x1F,0x1F,0x1F,0x1F,0x1F,0x00,        // 4 - 100% full battery symbol
+		0x00,0x00,0x1F,0x1F,0x1F,0x1F,0x00,0x00,        // 5 - Stop Symbol
+		0x00,0x00,0x08,0x0C,0x0E,0x0C,0x08,0x00,        // 6 - Play Symbol
+		0x00,0x00,0x1B,0x1B,0x1B,0x1B,0x1B,0x00,        // 7 - Pause Symbol
+	};
+
 	hd44780_WriteControllerCmnd(&HD44780, HD44780_FUNCTIONSET | HD44780_8BITMODE | HD44780_2LINE | HD44780_5x8DOTS);
 	hd44780_WriteControllerCmnd(&HD44780, HD44780_SETDDRAMADDR);
 	hd44780_WriteControllerCmnd(&HD44780, HD44780_RETURNHOME);
-	hd44780_WriteControllerCmnd(&HD44780, HD44780_SETCGRAMADDR);
+//	hd44780_WriteControllerCmnd(&HD44780, HD44780_SETCGRAMADDR);
 	hd44780_WriteControllerCmnd(&HD44780, HD44780_DISPLAYCONTROL | HD44780_DISPLAYON | HD44780_CURSOROFF);
 	hd44780_WriteControllerCmnd(&HD44780, HD44780_CLEARDISPLAY);
 	hd44780_WriteControllerCmnd(&HD44780, HD44780_ENTRYMODESET | HD44780_ENTRYRIGHT | HD44780_ENTRYSHIFTOFF);
+
+	/* 8 user defined characters of 8 x 5 dots */
+	hd44780_WriteControllerCmnd(&HD44780, HD44780_SETCGRAMADDR);
+	for (unsigned i = 0; i < 64; i++) {
+		hd44780_WriteControllerData(&HD44780, SetOneCGRAM[i]);
+	}
+
+	hd44780_WriteControllerCmnd(&HD44780, HD44780_SETDDRAMADDR);
 }
 
 
 static void DemoSegmentView (char basechar)
 {
 
-	/* Show a Character Map like that in the LCD DataSheet */
-	char ch = basechar & ~0x70;
+	/** Show a Character Map like that in the LCD DataSheet
+	    00 10 20 30 40 50 60 70
+	    01 11 21 31 41 51 61 71
+	    02 12 22 32 42 52 62 72
+		...
+	    0f 1f 2f 3f 4f 5f 6f 7f
+		00 10 20 30 40 50 60 70
+
+	*/
+	char ch = basechar & 0b10001111;
 	for (uint8_t ln = 0; ln < 6; ln++) {
 		char templine[12];
 		/* NB: 0x00 & '\r' Get Hijacked. Replace them for alternates. */
